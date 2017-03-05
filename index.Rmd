@@ -1,0 +1,13 @@
+---
+title: "IODS final project"
+output:
+  html_document:
+    theme: sandstone
+    toc: true
+    toc_depth: 2
+    fig_caption: true
+    fig_width: 6
+    fig_height: 4
+    author: "Paula Bergman"
+---
+
