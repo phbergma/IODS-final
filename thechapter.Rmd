@@ -1,0 +1,264 @@
+---
+output: html_document
+---
+
+#Introduction
+
+This is the final project for the Introduction to Open Data Science -course. The project consists of choosing the dataset, wrangling it for the analysis, performing the analysis and commenting on the results.
+
+#Abstract
+
+SCIENCE-dataset consists of a binary variable "interested" that describes whether the participants are interested in science or not, and 4 other variables that are used to explain the interest-variable. The data is subsetted from a Tiedebarometri 2016 (Science Barometer 2016) data that explores Finns' attitudes towards science and their opinions on scientific and technological progress. Logistic regression was used in the analysis. It reveals that out of the 4 variables, only education level and the size of the town where the participant lives, are significant when explaining the interest'variable. Lastly, also multiple correspondence analysis plot is drawn in order to demonstrate the connections between different values of those 3 variables.   
+
+#Choosing the dataset. 
+
+Since I am a scientist myself, I chose a dataset that has to do with science. It's called Tiedebarometri (engl. science barometer) and it asks about Finnish people attitudes towards science and scientific activities. The research is ordered by Tieteen tiedotus ry, made by Yhdyskuntatutkimus Oy and the main research on the project is Pentti Kiljunen. Tiedebarometri has been collected already since 2001 and it is collected every three years You can find out more about the dataset in Finnish [here](https://services.fsd.uta.fi/catalogue/FSD3137). More information about the Barometer in English can be found for example [here](http://www.tieteentiedotus.fi/files/Sciencebarometer_2016_web.pdf). 
+
+
+By looking at my data wrangling code you can find out what I did to my data set prior to the analysis. I created the variable "interested" by making a summary variable combining 9 variables. "Interested" will be my variable of interest in this project. I also handled some issues regarded the original form of the dataset (SPSS .por-file) The original dataset consisted of 146 variables and 1056 observations. I decided to keep only the variables used in the analysis in the dataset, because it is simple to handle a dataset with 5 variables instead of more than 100. 
+
+Lastly, for the purposes of this final project I filtered out all the rows that contained missingness. (Most often this is not a very good solution to handle missing data, since we don't know whether the missingness is completely at random or not. If missingness was somehow systematic, the obtained estimates could be distorted. There are various statistical methods to impute missingness, but since we are not addressing this issue on this course, I will just leave those observations out for now.) This procedure excluded 76 variables from the dataset.
+
+#Description of the SCIENCE-dataset
+
+```{r}
+#Read the data into RStudio
+setwd("C:/Users/Paula/Documents/GitHub/IODS-project/IODS-final/IODS-final")
+SCIENCE<-read.csv("SCIENCE.csv",header=T)
+```
+
+```{r}
+dim(SCIENCE)
+str(SCIENCE)
+```
+
+The dataset has 980 observations and 5 variables:
+
+* sex (male = 1, female = 2)
+* age (18-25 years = 1, 26-35 = 2, 36-45 = 3, 46-55 = 4, 56-65 = 5, >65 = 6)
+* townsize (<4000 inhabitants = 1, 4000-8000 = 2, 8000-30000 = 3, 30000-80000 = 4, >80000 = 5)
+* edu (no professional education = 1, a short course or a short school for a profession = 2, vocational school = 3, post-secondary education = 4, polytechnic education = 5, university level education = 6)
+* interested (not-interested in science = 0, interested in science = 1)
+
+By looking at the structure of the variables we can see that they are all integer. *Sex* and *interested* are binary variables and rest of them are ordinal, which means that they are discrete but their different possible values can be put in clear order.
+
+#Hypotesis
+
+I am trying to find out variables that could explain whether the people are interested in science or not. My hypothesis is that maybe men are more interested in science than women, older people are more interested than young people, people in bigger towns are more interested than the ones living in smaller towns, and people with upper level education are more interested than lower level education.
+
+#Pre-analysis
+
+```{r,message=FALSE}
+# Call packages needed for the analysis from the library
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(GGally)
+library(corrplot)
+library(FactoMineR)
+library(boot)
+```
+
+Lets's first take a look at the correlations of between the variables in order to get the initial idea of their relationships.
+
+```{r,fig.height=4,fig.width=4,fig.cap="*Figure 1.1 Correlations between the variables.*"}
+#Calculate the correlation matrix and round it
+cor_matrix<-cor(SCIENCE)
+
+#Visualize the correlation matrix
+corrplot(cor_matrix, method="circle", type="upper",cl.pos="b",tl.pos="d",tl.cex=1.0)
+```
+
+We can see that there is some positive correlation between townsize and education, and that they seem to be a little bit positively correlated with the variable of interest as well, as I suspected. Gender seems to have very little correlation with any of the other variables. Age seems to correlate negatively a little bit with townsize and education, that is: The older you are, in smaller town you live and less education you have. The negative correlation between age and education seems weird to me, but I guess it could have something to do with the fact that before high level education wasn't as accessible to people as it is today. Age also seems to correlate a teeny bit positively with the variable of interested, that hints that my hypothesis about this could be right.
+
+To look better the distributions of each variable, I created barplots of them.
+
+```{r,fig.height=6,fig.width=6,fig.cap="*Figure 1.2 Bar plots of the variables.*"}
+#Use gather() to gather columns into key-value pairs and then glimpse() at the resulting data
+gather(SCIENCE) %>% glimpse
+
+#Draw a bar plot of each variable
+gather(SCIENCE) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar() + theme(axis.text.x = element_text(size = 8)) +ggtitle("Barplots of all variables")
+```
+
+We can see that more people live in big towns than in small towns. More people have high level education than low level education. There are slightly more women than men among the participants, and slightly more are not interested in science than are interested. Distribution of age seems pretty much uniform (if we look at the "big picture") exept that there are less participant from the lowest agegroup than from any other. 
+
+#Logistic Regression Analysis
+
+##Assumptions
+
+Logistic regression can be used when we want to explain the variation of a binary variable with other variables. Logistic regression model gives us a probability of the occurrence of the event (binary variable) with certain values of the explanatory variables.
+
+Logistic regression doesn't make as many assumptions as the linear regression but there are still some that we have to take into account. The key assumption of binary logistic regression is that the variable to be explained must be binary. It has to be also coded so that "the event occurring" has value 1 and "event not occurring" 0. This is because as the outcome of the analysis we get a probability of the "event occurring".
+
+The logistic regression builds a model that looks like this:
+
+logit = integer + aX1 + bX2 + cX3 + ... + nXn
+
+X1-Xn are the explanatory variables and the letters before them represent their coefficients calculated by the model. Logit is the natural logarithm of odds and odds is the probability of the event occurring divided by the *probability* of the opposite. 
+
+The interpretation can be compared to linear regression but this time the dependent variable is not the variable of interest itself but the logit. Anyway all the variables that increase the logit, increase also the probability of the event occurring. This is also one of the assumptions of the logistic regression: The independent variables should be linearly related to log odds. 
+
+Logistic regression also assumes that the observations are independent from each other. This could be risked if the data would be for example time series data where the same participants are followed year after year. In the case of our data, we can assume that the observations are indeed independent. 
+
+The explanatory variables should be independent from each others as well. Further on we can see how this might effect the results of the analysis. 
+[1]
+
+##Analysis 
+
+I started the analysis by running a logistic regression with all the explanatory variables in it. 
+
+```{r}
+##Starting of the analysis
+attach(SCIENCE)
+logreg1<-glm(interested~sex+age+edu+townsize,family="binomial")
+summary(logreg1)
+```
+
+We can see that only education and townsize seem to be significant in this model. In this case the model equation would be:
+
+logit = -1.20149 - 0.17295sex - 0.06190age + 0.16506edu + 0.21585townsize
+
+Since sex and age weren't significant in the model, I decided to look at their effect on interested individually with chi square -test. Chi square -test is a test to check whether two categorical variables are dependent on each others or not.
+
+```{r}
+chisq.test(interested,sex)
+chisq.test(interested,age)
+```
+
+Interested doesn't seem to depend on sex at all and also the age is significant only in 0.05 level, so I decided to leave them out from the final model.
+
+```{r}
+logreg2<-glm(interested~edu+townsize,family="binomial")
+summary(logreg2)
+```
+
+The equation would now be:
+
+logit = -1.74720 + 0.16721edu + 0.22615townsize
+
+Let's take an example. Lets think that we have a university level studied person (edu=6) that lives in a city with 30000-80000 people (townsize=4). Then the logit would be
+
+```{r}
+logit= -1.74720+(0.16721*6)+(0.22615*4)
+```
+
+So now we could calculate the probability like this:
+
+```{r}
+p=(exp(logit))/(1+exp(logit))
+```
+
+The probability of this person being interested in science, according to this model, is approximately 0.54.
+
+Lets then look at the odds ratios (OR) and their confidence intervals (CI) in this model.  
+
+```{r}
+#Compute odds ratios (OR)
+OR<-coef(logreg2)%>%exp
+
+# compute confidence intervals (CI)
+CI<-confint(logreg2)%>%exp
+
+# print out the odds ratios with their confidence intervals
+cbind(OR,CI)
+```
+
+If the odds ratio is greater than 1, the variable increases the "risk of the event occurrence" and if it is smaller than one, the opposite. In this case both of the variables increase the probability of interest=1. 
+
+##Predictive power of the model
+
+```{r}
+#Predict() the probability of high_use
+probabilities<-predict(logreg2,type="response")
+
+#Add the predicted probabilities to 'SCIENCE'
+SCIENCE<-mutate(SCIENCE,probability=probabilities)
+
+#Use the probabilities to make a prediction of interested
+SCIENCE<-mutate(SCIENCE,prediction=probability>0.5)
+
+#Tabulate the target variable versus the predictions
+table(interested=SCIENCE$interested,prediction=SCIENCE$prediction)
+```
+
+We can see that the amount of true negatives is 373, false positives 159, false negatives 241 and true positives 207. Since the observations in total are 980, that would make the probabilities of these respectively 0.381, 0.162, 0.246 and 0.211. So the training error in total would be 0.402. This is unfortunately a very high training error. It might be due to the model that contains only 2 explanatory variables. So maybe more variables could have been chosen for a better model.
+
+We can check these numbers like this:
+
+```{r}
+#Tabulate the target variable versus the predictions
+t<-table(interested=SCIENCE$interested,prediction=SCIENCE$prediction)%>%prop.table%>%addmargins
+t
+```
+
+The same can also be seen in Figure 1.3.
+
+```{r,fig.width=6,fig.height=3,fig.cap="*Figure 1.3 Interest versus probability.*"}
+#Draw a plot of 'interested' versus 'probability' in 'SCIENCE'
+g<-ggplot(SCIENCE,aes(x=probability,y=interested,col=prediction)) + geom_point() + ggtitle("interested versus probability")
+g
+```
+
+Even though the prediction error is pretty high, compared to a simple guessinf method like the coin toss, the prediction model still performs well. By tossing a coin we would predict approximately 50 percent of the values being negative and 50 percent positive, and since these are not the actual proportion, the prediction would go terribly wrong. So I would say that it is better to base the prediction model on the actual data than anything else.
+
+Lets still look at the 10-fold cross-validation.
+
+```{r}
+#Define a loss function (average prediction error)
+loss_func<-function(class,prob){
+  n_wrong<-abs(class-prob)>0.5
+  mean(n_wrong)
+}
+
+#Compute the average number of wrong predictions in the (training) data
+loss_func(SCIENCE$interested,SCIENCE$probability)
+
+#K-fold cross-validation
+cv<-cv.glm(data=SCIENCE,cost=loss_func,glmfit=logreg2,K=10)
+cv$delta[1]
+```
+
+The number is a little over 0.40 so that indicates that this model is not the best of a kind.
+
+#Multiple Correspondence Analysis plot
+
+```{r}
+mcavars<-c("interested","edu","townsize")
+science_for_mca<-SCIENCE[mcavars]
+```
+
+```{r}
+#Let's first change all the variables into factor form since they are still in
+#integer form
+science_for_mca$interested<-as.factor(science_for_mca$interested)
+science_for_mca$edu<-as.factor(science_for_mca$edu)
+science_for_mca$townsize<-as.factor(science_for_mca$townsize)
+#Multiple correspondence analysis
+mca <- MCA(science_for_mca, graph = FALSE)
+#Summary of the model
+summary(mca)
+```
+
+We can see that the first dimension explains 14.395 % of the variation and the second dimension 11.039 %.
+
+```{r,fig.height=6,fig.width=6,fig.cap="*Figure 1.4 Visualization of Multiple Correspondence Analysis.*"}
+#Visualize MCA
+plot(mca,habillage="quali",
+invisible="ind",cex=1.0,cex.lab=0.8,cex.axis=1.0,title="Multiple Correspondence Analysis",lwd=0.1, select="contrib 20")
+
+```
+
+From Figure 1.4 we can see that the interest in science go hand in hand with very high level of education and living in big town. For some reason education level 4 and education level 1 are quite close to each other as well as to second biggest townsize. They are as pretty much as far from interesed=1 and interested=0. The quarter where the not-interested-choice is, contains the rest of the variables' levels. These results affirm the results of the logistic regression.
+
+#Conclusions and discussion
+
+This final project for the IODS-course offers an overview of the logistic regression method used on The Science Barometer 2016. A simple example is created and the method is explained with the help of that example. 
+
+Forming a real logistic regression is a complex task and should be done with more than just a couple of variables. In the future maybe some other variables could be added to the model. The relationships between all the variables in the model should be explored thoroughly because the explanatory variables should be independent from each other. 
+
+I used multiple correspondence analysis in the end in order to visualize the situation. I think this is a nice addition to just the logistic analysis results in the case of only discrete variables. In the case of also continuous variables some other visualization method should be used.
+
+#References
+
+[1](http://www.statisticssolutions.com/assumptions-of-logistic-regression/)
