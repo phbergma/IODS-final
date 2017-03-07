@@ -1,0 +1,60 @@
+T‰m‰ ZIP-paketti sis‰lt‰‰ aineiston
+
+FSD3137 Tiedebarometri 2016
+
+Lataamalla aineiston olet sitoutunut noudattamaan k‰yttˆehtoja. Aineiston
+k‰yttˆehdot ovat:
+
+Aineisto on k‰ytett‰viss‰ (B) tutkimukseen, opetukseen ja opiskeluun.
+Ailan k‰yttˆehdot: https://services.fsd.uta.fi/docs/eula?lang=fi
+Aineistojen yleiset k‰yttˆehdot: https://services.fsd.uta.fi/docs/terms-of-use?lang=fi
+
+
+Aineistoon ja sen tekijˆihin on viitattava asianmukaisesti kaikissa
+julkaisuissa ja esityksiss‰, joissa aineistoa k‰ytet‰‰n. Tietoarkiston antaman
+malliviittaustiedon voi merkit‰ l‰hdeluetteloon sellaisenaan tai sit‰ voi
+muokata julkaisun k‰yt‰ntˆjen mukaisesti.
+
+Malliviittaustiedot:
+
+Kiljunen, Pentti (Yhdyskuntatutkimus): Tiedebarometri 2016 [s‰hkˆinen tietoaineisto]. Versio 1.0 (2017-01-12). Yhteiskuntatieteellinen tietoarkisto [jakaja]. http://urn.fi/urn:nbn:fi:fsd:T-FSD3137
+
+
+Jos sinulla on kysytt‰v‰‰ n‰ist‰ tai muista aineistoistamme, voit ottaa yhteytt‰ asiakaspalveluumme:
+asiakaspalvelu.fsd@uta.fi tai 040-1901442
+
+
+Yst‰v‰llisin terveisin
+Tietoarkiston asiakaspalvelu
+
+
+--
+K‰yttˆtarkoitus ja aineiston h‰vitt‰minen:
+Asiakas saa k‰ytt‰‰ aineistoa ainoastaan ilmoittamaansa k‰yttˆtarkoitukseen, mink‰ j‰lkeen aineisto on h‰vitett‰v‰. Jos k‰yttˆtarkoitus muuttuu, on haettava uutta k‰yttˆlupaa.
+
+--
+Vastuuvapauslauseke:
+Aineiston alkuper‰iset tekij‰t ja tietoarkisto eiv‰t ole vastuussa aineiston jatkok‰ytˆss‰ tuotetuista tuloksista ja tulkinnoista.
+
+--
+ZIP-paketin avaaminen:
+Tallenna liitetiedosto ensin oman koneesi kiintolevylle. Esimerkiksi Windowsissa resurssienhallinta (Oma tietokone) osaa n‰ytt‰‰ ja purkaa tiedostot. Vaihtoehtoisesti purkamiseen voi k‰ytt‰‰ erillist‰ ohjelmaa (esim. WinZip, 7-zip).
+
+--
+SPSS portable -tiedoston avaaminen:
+Valitse SPSS:n pudotusvalikosta File -> Open -> Data ja kohdasta 'Files of type' tiedostomuoto SPSS portable (*.por). HUOM! Jos ‰‰kkˆset eiv‰t n‰y oikein (ongelma on ilmennyt erityisesti SPSS:n version 21 kanssa): Valitse ensin pudotusvalikosta Edit -> Options -> General -> Character encoding for data and syntax -> Local. Avaa tiedosto edell‰ mainitulla tavalla.
+
+--
+Kvalitatiivisen aineiston html-tiedostot:
+S‰ilyt‰ kaikki html-tiedostot samassa hakemistossa. Aloita aineiston selaaminen tiedostosta daFnnnn_index.html, joka sis‰lt‰‰ linkit varsinaisiin datatiedostoihin.
+
+--
+ZIP-paketti sis‰lt‰‰ tiedostot:
+  Data (suomenkielinen): Study/data/daF3137.por
+  Koodikirja (suomenkielinen): Study/cbF3137.pdf
+  Kyselylomake (suomenkielinen): Study/quF3137_fin.pdf
+  Saatekirje (suomenkielinen): LUEMINUT.TXT
+  Saatekirje (englanninkielinen): README.TXT
+
+--
+Lis‰tiedot: http://www.fsd.uta.fi/
